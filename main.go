@@ -11,18 +11,18 @@ import (
 	"github.com/fluent/fluent-bit-go/output"
 )
 
-// FLBPluginRegister registers your plugin with Fluent Bit (name, description, callbacks)
-//
-//export FLBPluginRegister
-func FLBPluginRegister(ctx unsafe.Pointer) int {
-	return output.FLBPluginRegister(ctx, "ip812", "output plugin")
-}
-
 // FLBPluginInit is called for each plugin instance
 //
 //export FLBPluginInit
 func FLBPluginInit(ctx unsafe.Pointer) int {
 	return output.FLB_OK
+}
+
+// FLBPluginRegister registers your plugin with Fluent Bit (name, description, callbacks)
+//
+//export FLBPluginRegister
+func FLBPluginRegister(ctx unsafe.Pointer) int {
+	return output.FLBPluginRegister(ctx, "ip812", "output plugin")
 }
 
 // FLBPluginFlushCtx is called when the plugin is invoked to flush data
