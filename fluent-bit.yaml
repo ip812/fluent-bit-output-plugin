@@ -1,0 +1,11 @@
+service:
+  log_level: info
+
+pipeline:
+  inputs:
+    - name: dummy
+      dummy: '{"message": "custom dummy"}'
+
+  outputs:
+    - name: ip812
+      match: '*'
