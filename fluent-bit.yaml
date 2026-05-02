@@ -1,6 +1,9 @@
 service:
   log_level: info
 
+plugins:
+  - ./bin/output_plugin.so
+
 pipeline:
   inputs:
     - name: dummy
