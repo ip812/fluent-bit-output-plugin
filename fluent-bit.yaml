@@ -7,8 +7,10 @@ plugins:
 pipeline:
   inputs:
     - name: dummy
-      dummy: '{"message": "custom dummy"}'
+      dummy: '{"name": "John"}'
 
   outputs:
     - name: ip812
       match: '*'
+      LogLevel: debug 
+      Endpoint: localhost:4317

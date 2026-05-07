@@ -5,16 +5,38 @@ import (
 	"fmt"
 	"unsafe"
 
-	"log/slog"
 	"time"
 
 	"github.com/fluent/fluent-bit-go/output"
+	"github.com/go-logr/logr"
 )
+
+var (
+	logger  logr.Logger
+	plugins *Plugins
+)
+
+func init() {
+	plugins = NewPlugins()
+}
 
 // FLBPluginInit is called for each plugin instance
 //
 //export FLBPluginInit
 func FLBPluginInit(ctx unsafe.Pointer) int {
+	if id := output.FLBPluginGetContext(ctx); id != nil && plugins.Contains(id.(string)) {
+		logger.Info("[flb-go]", "output plugin is already present")
+		return output.FLB_OK
+	}
+
+	cfg, err := NewConfig(ctx)
+	if err != nil {
+		logger.Info("[flb-go] failed to launch", "error", err)
+		return output.FLB_ERROR
+	}
+	logger = NewLogger(cfg.PluginConfig.LogLevel)
+	cfg.Dump()
+
 	return output.FLB_OK
 }
 
@@ -49,7 +71,6 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 			timestamp = time.Now()
 		}
 
-		slog.Info("[%d] %s: [%s, {", count, C.GoString(tag), timestamp.String())
 		handle(record, timestamp, tag)
 		count++
 
@@ -59,9 +80,10 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 
 func handle(record map[interface{}]interface{}, timestamp time.Time, tag *C.char) {
 	for k, v := range record {
-		fmt.Printf("\"%s\": %v, ", k, v)
+		logger.Info(
+			fmt.Sprintf("%s: %s", k, v),
+		)
 	}
-	fmt.Printf("}\n")
 }
 
 // FLBPluginExit is called when the plugin is being destroyed (global cleanup)
