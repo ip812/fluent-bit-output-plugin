@@ -10,7 +10,8 @@ import (
 )
 
 type PluginConfig struct {
-	LogLevel string `mapstructure:"LogLevel"`
+	LogLevel   string `mapstructure:"LogLevel"`
+	ClientType string `mapstructure:"ClientType"`
 }
 
 type OTLPConfig struct {
@@ -69,6 +70,7 @@ func rawConfig(ctx unsafe.Pointer) map[string]any {
 	// Define all possible configuration keys based on the structs and documentation
 	configKeys := []string{
 		// General config
+		"ClientType", "clienttype", "client_type",
 		"LogLevel", "logLevel", "log_level",
 
 		// Common OTLP configs
