@@ -26,6 +26,7 @@ type Config struct {
 func (conf *Config) Dump() {
 	logger.V(1).Info("[flb-go] =====   Plugin Config   =====")
 
+	logger.V(1).Info("[flb-go]", "ClientType", conf.PluginConfig.ClientType)
 	logger.V(1).Info("[flb-go]", "LogLevel", conf.PluginConfig.LogLevel)
 	logger.V(1).Info("")
 	logger.V(1).Info("[flb-go] =====   OTLP Config   =====")
@@ -36,7 +37,8 @@ func (conf *Config) Dump() {
 func defaultConfig() *Config {
 	return &Config{
 		PluginConfig: PluginConfig{
-			LogLevel: "info",
+			ClientType: NOOP.String(),
+			LogLevel:   "info",
 		},
 		OTLPConfig: OTLPConfig{
 			Endpoint: "localhost:4317",

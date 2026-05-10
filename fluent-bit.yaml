@@ -12,13 +12,6 @@ pipeline:
   outputs:
     - name: ip812
       match: '*'
-      LogLevel: debug 
-      Endpoint: localhost:4317
-    - name: ip812
-      match: '*'
-      LogLevel: debug 
-      Endpoint: localhost:4318
-    - name: ip812
-      match: '*'
-      LogLevel: debug 
-      Endpoint: localhost:4319
+      logLevel: debug 
+      endpoint: localhost:4317
+      clientType: stdout

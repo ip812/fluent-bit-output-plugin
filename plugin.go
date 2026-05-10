@@ -82,22 +82,25 @@ func NewPlugin(id string, logger logr.Logger, cfg *Config) (OutputPlugin, error)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	clientType := ClientTypeFromString(cfg.PluginConfig.ClientType)
-	var newClientFunc NewClientFunc
+	var ncf NewClientFunc
 	switch clientType {
 	// case OTLPGRPC:
 	// 	newClientFunc = NewOTLPGRPCClient
 	// case OTLPHTTP:
 	// 	newClientFunc = NewOTLPHTTPClient
 	case STDOUT:
-		newClientFunc = NewStdoutClient
+		ncf = NewStdoutClient
 	case NOOP:
-		newClientFunc = NewNoopClient
+		ncf = NewNoopClient
 	default:
+		cancel()
 		return nil, fmt.Errorf("unknown client type: %v", clientType)
 	}
 
-	client, err := newClientFunc(ctx, *cfg, logger)
+	// Create a single context for the entire plugin lifecycle
+	client, err := ncf(ctx, *cfg, logger)
 	if err != nil {
+		cancel()
 		return nil, fmt.Errorf("can't create client")
 	}
 
@@ -111,24 +114,19 @@ func NewPlugin(id string, logger logr.Logger, cfg *Config) (OutputPlugin, error)
 	}, nil
 }
 
-func getNewClientFunc(t Type) (NewClientFunc, error) {
-	switch t {
-	// case OTLPGRPC:
-	// 	return NewOTLPGRPCClient, nil
-	// case OTLPHTTP:
-	// 	return NewOTLPHTTPClient, nil
-	case STDOUT:
-		return NewStdoutClient, nil
-	case NOOP:
-		return NewNoopClient, nil
-	default:
-		return nil, fmt.Errorf("unknown client type: %v", t)
-	}
-}
-
 func (p *Plugin) SendRecord(log OutputEntry) error {
-	return nil
+	record := log.Record
+	if len(record) == 0 {
+		p.logger.Info("no record left after removing keys")
+		return nil
+	}
+
+	return p.client.Handle(log)
 }
 
 func (p *Plugin) Close() {
+	// Cancel the plugin context first to signal all operations to stop
+	p.cancel()
+	p.client.StopWait()
+	p.logger.Info("logging plugin stopped")
 }

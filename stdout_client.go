@@ -5,7 +5,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/go-logr/logr"
 )
@@ -36,6 +38,27 @@ func NewStdoutClient(ctx context.Context, cfg Config, logger logr.Logger) (Outpu
 
 // Handle processes and writes the log entry to stdout while incrementing metrics
 func (c *StdoutClient) Handle(entry OutputEntry) error {
+	// Create a map with timestamp and record fields
+	output := map[string]any{
+		"timestamp": entry.Timestamp.Format("2006-01-02T15:04:05.000000Z07:00"),
+		"record":    entry.Record,
+	}
+
+	// Marshal to JSON
+	data, err := json.Marshal(output)
+	if err != nil {
+		c.logger.Error(err, "failed to marshal log entry to JSON")
+
+		return fmt.Errorf("failed to marshal log entry: %w", err)
+	}
+
+	// Write to stdout
+	if _, err := fmt.Fprintln(os.Stdout, string(data)); err != nil {
+		c.logger.Error(err, "failed to write log entry to stdout")
+
+		return fmt.Errorf("failed to write to stdout: %w", err)
+	}
+
 	return nil
 }
 

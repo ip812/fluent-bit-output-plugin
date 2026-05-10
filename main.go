@@ -27,8 +27,12 @@ var (
 func FLBPluginInit(ctx unsafe.Pointer) int {
 	// Check if the plugin was already initialized
 	pluginID := output.FLBPluginGetContext(ctx)
+	if pluginID == nil {
+		logger.Info("[flb-go]", "output plugin is already present")
+		return output.FLB_OK
+	}
 	_, okPlugin := plugins.Load(pluginID.(string))
-	if pluginID != nil && okPlugin {
+	if okPlugin {
 		logger.Info("[flb-go]", "output plugin is already present")
 		return output.FLB_OK
 	}
